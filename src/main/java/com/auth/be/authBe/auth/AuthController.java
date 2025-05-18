@@ -6,6 +6,10 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.auth.be.authBe.auth.DTO.GenSignatureReqDTO;
+import com.auth.be.authBe.auth.DTO.SnapAccessTokenResDTO;
+
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -45,7 +49,7 @@ public class AuthController {
     }
 
     @PostMapping("/verify/snap/access-token")
-    public String verifySnapAccessToken(
+    public SnapAccessTokenResDTO verifySnapAccessToken(
             @RequestHeader("X-PARTNER_ID") String partnerId,
             @RequestHeader("X-TIMESTAMP") String timestamp,
             @RequestHeader("X-SIGNATURE") String signature,

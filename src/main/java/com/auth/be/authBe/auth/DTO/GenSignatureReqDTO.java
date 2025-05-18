@@ -1,4 +1,4 @@
-package com.auth.be.authBe.auth;
+package com.auth.be.authBe.auth.DTO;
 
 import java.time.ZonedDateTime;
 

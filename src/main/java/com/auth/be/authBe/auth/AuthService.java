@@ -15,16 +15,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestHeader;
 
+import com.auth.be.authBe.auth.DTO.GenSignatureReqDTO;
+import com.auth.be.authBe.auth.DTO.SnapAccessTokenResDTO;
 import com.auth.be.authBe.exception.BadRequestException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +35,8 @@ public class AuthService {
     private EncryptUtils encryptUtils;
     @Autowired
     private AuthRepository authRepository;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     final String AUTH_TYPE_SNAP = "SNAP";
     final String AUTH_TYPE_BASIC = "BASIC";
@@ -43,6 +44,7 @@ public class AuthService {
     final String TOKEN_TYPE_BEARER = "BEARER";
     final String TOKEN_TYPE_BEARERWTOKEN = "BEARERWPREFIX";
     final String TOKEN_TYPE_MAC = "MAC";
+    final String USER_CREDENTIAL = "user_credential";
 
     public AuthEntity generateSnapClient(AuthEntity entity) {
         // Generate client key and secret key
@@ -181,7 +183,7 @@ public class AuthService {
         return signBase64;
     }
 
-    public String verifySnapAccessToken(String partnerId, String timestampStr, String signature, String clientKey,
+    public SnapAccessTokenResDTO verifySnapAccessToken(String partnerId, String timestampStr, String signature, String clientKey,
             Map<String, String> body) {
         // Validate the request
         if (partnerId == null || partnerId.isEmpty() || timestampStr == null || timestampStr.isEmpty()
@@ -191,6 +193,10 @@ public class AuthService {
         // Validate the body
         if (body == null || body.isEmpty()) {
             throw new BadRequestException("Body cannot be null or empty");
+        }
+        // TODO: Benerin ini
+        if (body.containsKey("grant_type") || body.get("grant_type").isBlank() ||  body.get("grant_type").isEmpty() || !body.get("grant_type").equals(USER_CREDENTIAL)) {
+            throw new BadRequestException("Missing body grant_type");
         }
 
         AuthEntity ae = authRepository.findByClientKey(clientKey);
@@ -221,10 +227,11 @@ public class AuthService {
             if (!isValid) {
                 throw new BadRequestException("Signature is not valid");
             }
-
-            return "Signature verified successfully";
+            
         } catch (InvalidKeySpecException | InvalidKeyException | NoSuchAlgorithmException | SignatureException e) {
             throw new RuntimeException("Error verifying signature", e);
         }
+
+        return new SnapAccessTokenResDTO(jwtUtil.generateToken(clientKey, ae.getAccessTokenExpiryTime(), ae.getPrivateKey()), ae.getAccessTokenExpiryTime());
     }
 }
