@@ -5,10 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class SnapAccessTokenResDTO {
+@NoArgsConstructor
+public class AccessTokenBasicResDTO {
     private String accessToken;
-    private String tokenType;
-    private Long expiresIn;
+    private String refreshToken;
 }

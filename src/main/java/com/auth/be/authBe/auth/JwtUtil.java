@@ -1,11 +1,14 @@
 package com.auth.be.authBe.auth;
 
 import java.security.Key;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
@@ -16,55 +19,77 @@ import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
-    public String extractUsername(String token, String Secret) {
-        return extractClaim(token, Secret, Claims::getSubject);
+    @Value("${jwt.secret}")
+    private String secret;
+
+    public String extractUsername(String token) {
+        return extractClaim(token, Claims::getSubject);
     }
 
-    public Date extractExpiration(String token, String Secret) {
-        return extractClaim(token, Secret ,Claims::getExpiration);
+    public Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
     }
 
-    public <T> T extractClaim(String token, String Secret, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token, Secret);
+    public String extractType(String token) {
+        return extractClaim(token, claims -> claims.get("type", String.class));
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    private Claims extractAllClaims(String token, String Secret) {
+    private Claims extractAllClaims(String token ) {
         return Jwts
-        //TODO: Cari tau kegunaan claims
                 .parserBuilder()
-                .setSigningKey(getSignKey(Secret))
+                .setAllowedClockSkewSeconds(60)
+                .setSigningKey(getSignKey())
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
-    private Boolean isTokenExpired(String token, String Secret) {
-        return extractExpiration(token, Secret).before(new Date());
+    private Boolean isTokenExpired(String token ) {
+        return extractExpiration(token).before(new Date());
     }
 
-    public Boolean validateToken(String token, String username, String Secret) {
-        final String extractedUsername = extractUsername(token, Secret);
-        return (extractedUsername.equals(username) && !isTokenExpired(token, Secret));
+    public Boolean validateToken(String token, String username ) {
+        final String extractedUsername = extractUsername(token);
+        return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
 
-    public String generateToken(String username, long jwtExpiration, String Secret) {
+    public String generateToken(String username, long jwtExpiration ) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, username, jwtExpiration, Secret);
+        return createToken(claims, username, jwtExpiration);
     }
 
-    private String createToken(Map<String, Object> claims, String username, long jwtExpiration, String Secret) {
-        //TODO: Cari tau kegunaan claims
+    public String generateTokenBasic(String username, long jwtExpiration, String type ) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("type", type);
+        return createToken(claims, username, jwtExpiration);
+    }
+
+    public Boolean validateTokenBasic(String token, String username, String type) {
+        final String extractedUsername = extractUsername(token);
+        final String extractedType = extractType(token);
+        return (extractedUsername.equals(username) && !isTokenExpired(token) && extractedType.equals(type));
+    }
+    
+
+    private String createToken(Map<String, Object> claims, String username, long jwtExpiration ) {
+        LocalDateTime currentTime = LocalDateTime.now();
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(username)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
-                .signWith(getSignKey(Secret), SignatureAlgorithm.HS256)
+                .setIssuedAt(Date.from(currentTime.atZone(ZoneId.systemDefault()).toInstant()))
+                .setExpiration(Date.from(currentTime.plusSeconds(jwtExpiration)
+                        .atZone(ZoneId.systemDefault())
+                        .toInstant()))
+                .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    private Key getSignKey(String secret) {
+    private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }

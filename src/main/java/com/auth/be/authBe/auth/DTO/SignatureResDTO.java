@@ -5,10 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class SnapAccessTokenResDTO {
-    private String accessToken;
-    private String tokenType;
-    private Long expiresIn;
+@NoArgsConstructor
+public class SignatureResDTO {
+    private String signatureKey;
 }
