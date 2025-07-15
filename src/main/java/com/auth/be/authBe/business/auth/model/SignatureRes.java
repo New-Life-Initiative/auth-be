@@ -1,4 +1,4 @@
-package com.auth.be.authBe.auth.DTO;
+package com.auth.be.authBe.business.auth.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SignatureResDTO {
+public class SignatureRes {
     private String signatureKey;
 }

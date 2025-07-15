@@ -1,4 +1,4 @@
-package com.auth.be.authBe.auth;
+package com.auth.be.authBe.business.auth.utils;
 
 import java.security.Key;
 import java.time.LocalDateTime;
@@ -16,7 +16,9 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class JwtUtil {
     @Value("${jwt.secret}")
@@ -72,7 +74,15 @@ public class JwtUtil {
     public Boolean validateTokenBasic(String token, String username, String type) {
         final String extractedUsername = extractUsername(token);
         final String extractedType = extractType(token);
+        log.debug("extractedUsername: [{}]" + extractedUsername);
+        log.debug("extractedType: [{}]" + extractedType);
         return (extractedUsername.equals(username) && !isTokenExpired(token) && extractedType.equals(type));
+    }
+
+    public Boolean validateTokenBasic(String token, String type) {
+        final String extractedType = extractType(token);
+        log.debug("extractedType: [{}]" + extractedType);
+        return (!isTokenExpired(token) && extractedType.equals(type));
     }
     
 

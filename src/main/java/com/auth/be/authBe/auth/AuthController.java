@@ -1,14 +1,9 @@
 package com.auth.be.authBe.auth;
 
-
+import com.auth.be.authBe.auth.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.auth.be.authBe.auth.DTO.AccessTokenBasicReqDTO;
-import com.auth.be.authBe.auth.DTO.AccessTokenBasicResDTO;
-import com.auth.be.authBe.auth.DTO.SignatureResDTO;
-import com.auth.be.authBe.auth.DTO.SnapAccessTokenResDTO;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestHeader;
 @RequestMapping("/api/v1/auth")
 @CrossOrigin(origins = "*")
 public class AuthController {
-    // Generate Client Key and Secret Key
     @Autowired
     private AuthService authService;
 
@@ -44,18 +38,18 @@ public class AuthController {
     }
 
     @PostMapping("/generate/signature/access-token")
-    public SignatureResDTO generateSignatureAccessToken(@RequestHeader("X-TIMESTAMP") String timestamp, @RequestHeader("X-PARTNER-ID") String partnerId) {
-        return authService.generateSignatureAccessToken(timestamp, partnerId);
+    public SignatureResDTO generateSignatureAccessToken(@RequestHeader("X-TIMESTAMP") String timestamp, @RequestHeader("X-CLIENT-KEY") String clientKey) {
+        return authService.generateSignatureAccessToken(timestamp, clientKey);
     }
 
     @PostMapping("/generate/signature/transaction")
     public SignatureResDTO generateSignatureTransaction(
-        @RequestHeader("HTTP-METHOD") String httpMethod, //
-        @RequestHeader("RELATIVE-URL") String relativeUrl, //
-        @RequestHeader("Authorization") String authorization, //
-        @RequestHeader("X-TIMESTAMP") String timestamp, //
-        @RequestHeader("X-PARTNER-ID") String partnerId, //
-        @RequestBody String body //
+        @RequestHeader("HTTP-METHOD") String httpMethod,
+        @RequestHeader("RELATIVE-URL") String relativeUrl,
+        @RequestHeader("Authorization") String authorization,
+        @RequestHeader("X-TIMESTAMP") String timestamp,
+        @RequestHeader("X-PARTNER-ID") String partnerId,
+        @RequestBody String body
     ) {
         return authService.generateSignatureTransaction(httpMethod, relativeUrl, authorization, timestamp, partnerId, body);
     }
@@ -73,26 +67,33 @@ public class AuthController {
 
     @PostMapping("/verify/snap/transaction")
     public String verifySnapTransaction(
-        @RequestHeader("HTTP-METHOD") String httpMethod, //
-        @RequestHeader("X-PARTNER-ID") String partnerId, //
-        @RequestHeader("RELATIVE-URL") String relativeUrl, //
-        @RequestHeader("Authorization") String authorization, //
-        @RequestHeader("X-TIMESTAMP") String timestamp, //
-        @RequestHeader("CHANNEL-ID") String channelId,  //
-        @RequestHeader("X-SIGNATURE") String signature, //
-        @RequestBody String body //
+        @RequestHeader("HTTP-METHOD") String httpMethod,
+        @RequestHeader("X-PARTNER-ID") String partnerId,
+        @RequestHeader("RELATIVE-URL") String relativeUrl,
+        @RequestHeader("Authorization") String authorization,
+        @RequestHeader("X-TIMESTAMP") String timestamp,
+        @RequestHeader("CHANNEL-ID") String channelId, 
+        @RequestHeader("X-SIGNATURE") String signature,
+        @RequestBody String body
     ) {
         return authService.verifySnapTransaction(httpMethod, partnerId, relativeUrl, authorization, timestamp, channelId, signature, body);
     }
 
     @PostMapping("/verify/basic/access-token")
     public AccessTokenBasicResDTO verifyBasicAccessToken(
-        @RequestHeader("Username") String username, //
-        @RequestHeader("Password") String password, //
-        @RequestBody AccessTokenBasicReqDTO body //
-        // Body -> grant_type, refresh_token 
+        @RequestHeader("Username") String username,
+        @RequestHeader("Password") String password,
+        @RequestBody AccessTokenBasicReqDTO body
     ) {
         return authService.verifyBasicAccessToken(username, password, body);
+    }
+
+    @PostMapping("/verify/basic/transaction")
+    public String verifyBasicAccessToken(
+        @RequestHeader("Authorization") String authorization
+
+    ) {
+        return authService.verifyBasicTransaction(authorization);
     }
     
 }

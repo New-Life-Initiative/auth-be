@@ -14,4 +14,6 @@ public interface AuthRepository extends JpaRepository<AuthEntity, AuthEntityId> 
     List<AuthEntity> findByAuthTypeAndStatus(String string, String string2);
 
     AuthEntity findByUsernameAndPassword(String username, String password);
+
+    boolean existsByUsername(String extractedUsername);
 }

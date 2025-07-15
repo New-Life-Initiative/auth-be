@@ -1,4 +1,5 @@
-package com.auth.be.authBe.auth.DTO;
+package com.auth.be.authBe.auth.dto;
+
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +8,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AccessTokenBasicReqDTO {
+public class AccessTokenReqDTO {
     private String grant_type;
-    private String refresh_token;
 }
