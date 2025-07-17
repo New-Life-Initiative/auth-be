@@ -107,6 +107,10 @@ public class EncryptUtils {
 
     public String generateSignatureSnap(String stringToSign, String privateKey) {
         try {
+            privateKey = privateKey
+                    .replace("-----BEGIN PRIVATE KEY-----", "")
+                    .replace("-----END PRIVATE KEY-----", "")
+                    .replaceAll("\\s+", "");
             Signature signature = Signature.getInstance("SHA256withRSA");
             KeyFactory kf = KeyFactory.getInstance("RSA");
             PKCS8EncodedKeySpec keySpecPKCS8 = new PKCS8EncodedKeySpec(
